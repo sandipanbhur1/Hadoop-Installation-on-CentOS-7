@@ -1,0 +1,152 @@
+Install Java
+
+cd ~
+cd /home/sandipanbhur/Downloads
+tar xzf jdk-8u101-linux-x64.tar.gz
+mv /home/sandipanbhur/Downloads/jdk1.8.0_101 /home/sandipanbhur
+
+
+Install Java with Alternatives
+
+cd ~
+cd jdk1.8.0_101/
+sudo alternatives --install /usr/bin/java java /home/sandipanbhur/jdk1.8.0_101/bin/java 2
+[sudo] password for sandipanbhur:
+sudo alternatives --config java
+[sudo] password for sandipanbhur:
+
+
+There are 3 programs which provide ‘java’.
+
+Selection    Command
+-----------------------------------------------
+*+ 1       /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.71-2.b15.el7_2.x86_64/jre/bin/java
+2          /usr/lib/jvm/java-1.7.0-openjdk-1.7.0.95-2.6.4.0.el7_2.x86_64/jre/bin/java
+3          /home/sandipanbhur/jdk1.8.0_101/bin/java
+
+
+II. Configuring Environment Variables
+In order to configure Java environment variables we need to use the following commands:
+a. Setup JAVA_HOME Variable
+export JAVA_HOME=/home/sandipanbhur/Downloads/jdk1.8.0_101
+b. Setup JRE_HOME Variable
+export JRE_HOME=/home/sandipanbhur/Downloads/jdk1.8.0_101/jre
+c. Setup PATH Variable
+export PATH=$PATH:/home/sandipanbhur/Downloads/jdk1.8.0_101/bin:/home/sandipanbhur/Downloads/jdk1.8.0_101/jre/bin
+
+2 Install Hadoop on CentOS
+I. Configure Password Less SSH
+In order to set up key based ssh, we need to execute following commands:
+ssh-keygen -t rsa
+
+
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/hadoop/.ssh/id_rsa): “Press Enter”
+Created directory '/home/hadoop/.ssh'.
+Enter passphrase (empty for no passphrase):  “Press Enter”
+Enter same passphrase again: “Press Enter”
+
+
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+chmod 0600 ~/.ssh/authorized_keys
+
+In order to verify key based login, we need to execute below command. But, it should not ask for a password.
+
+ssh localhost
+
+
+3 Download Hadoop
+http://archive.cloudera.com/cdh5/cdh/5/hadoop-2.6.0-cdh5.5.0.tar.gz
+Now copy Hadoop to Home directory of your system once it gets downloaded.
+
+I. Untar Hadoop File
+All the contents of compressed Hadoop file package can be extracted using the below command:
+tar xzf hadoop-2.6.0-cdh5.5.0.tar.gz
+
+
+II. Setup Configuration Files
+
+a. Edit .bashrc
+Now makes changes in environment file “.bashrc” present in your system home directory. We can make changes in this file by executing: “$ nano -/.bashrc” command and there we need to insert following parameters at the end:
+
+
+export HADOOP_HOME=/home/sandipanbhur/hadoop-2.6.0-cdh5.5.0
+export HADOOP_INSTALL=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+
+
+b. Edit hadoop-env.sh
+Now makes changes in Hadoop configuration file “hadoop-env.sh” which is present in configuration directory (HADOOP_HOME/etc/hadoop) and in that file we need to set JAVA_HOME.
+
+export JAVA_HOME=<path-to-the-root-of-your-Java-installation> (eg: /home/sandipanbhur/Downloads/jdk1.8.0_101/)
+
+After changing the path of JAVA_HOME save this file. Press  “Ctrl+X” on your keyboard.
+
+c. Edit core-site.xml
+Now makes changes in Hadoop configuration file “core-site.xml” which is present in configuration directory (HADOOP_HOME/etc/hadoop) by executing the below command:
+
+nano core-site.xml
+
+And inside it add the following entries between <configuration> </configuration> present at the end of this file:
+
+<property>
+<name>fs.default.name</name>
+<value>hdfs://localhost:9000</value>
+</property>
+
+
+d. Edit hdfs-site.xml
+Now we need to make changes in Hadoop configuration file hdfs-site.xml (which is located in HADOOP_HOME/etc/hadoop) by executing the below command:
+
+nano hdfs-site.xml
+
+<property>
+<name>dfs.replication</name>
+<value>1</value>
+</property>
+
+Here we are setting Replication factor to 1, as it is a single node cluster.
+
+e. Edit mapred-site.xml
+In order to edit mapred-site.xml file we need to first create a copy of file mapred-site.xml.template.
+A copy of this file can be created using the following command:
+cp mapred-site.xml.template mapred-site.xml
+We will edit the mapred-site.xml file by using the following command:
+nano mapred-site.xml
+
+<property>
+<name>mapreduce.framework.name</name>
+<value>yarn</value>
+</property>
+
+f. Edit yarn-site.xml
+Now we need to make changes in Hadoop configuration file yarn-site.xml (which is located in HADOOP_HOME/etc/hadoop) by executing the below command:
+
+nano yarn-site.xml
+
+<property>
+<name>yarn.nodemanager.aux-services</name>
+<value>mapreduce_shuffle</value>
+</property>
+<property>
+<name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+<value>org.apache.hadoop.mapred.ShuffleHandler</value>
+</property>
+
+
+Starting the Hadoop Cluster
+a. NameNode Formatting
+
+
+hdfs namenode -format
+
+
+b. Start HDFS Daemons
+start-dfs.sh
+c. Start YARN Daemons
+start-yarn.sh
